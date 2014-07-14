@@ -74,6 +74,65 @@ var allData = sheet.getDataRange();
    Logger.log("row 1: "+row[1]);
   }
 }
+
+function moveComplete(){
+  Logger.clear();
+ // The code below will move the first 5 columns over to the 6th column
+ 
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var completeSheet = SpreadsheetApp.setActiveSheet(ss.getSheets() [4] );// getting the sheet labeled complete
+  var OpenTaskSheet = SpreadsheetApp.setActiveSheet(ss.getSheets() [1] );// getting the sheet labeled open 
+  var firstCol = "A";
+  var lastCol = "M";
+  var row = 2;
+ 
+  
+  var completeFirstCol = 3;
+  var allData = OpenTaskSheet.getDataRange();
+  var range = OpenTaskSheet.getRange(2,1, allData.getNumRows()-1, allData.getLastColumn());
+  var values = range.getValues();
+  for (var r=0; r<values.length; r++) {
+    //completed	opened	Company	Customer	Task	pri	deadline (2weeks)	location of task	status
+   var row = values[r];
+    
+    if(row[8]=="complete")
+    {
+      Logger.log("row 0: "+row[3]);
+      Logger.log("row 1: "+row[8]);
+      var tempFirst = firstCol+(r+2);
+      var tempLast = lastCol+(r+2);
+      Logger.log(" moving "+OpenTaskSheet.getName()+": ("+r+2+","+OpenTaskSheet.getLastColumn()+") to "+completeSheet.getName()+": ("+(completeSheet.getLastRow()+1)+", "+completeFirstCol+")");
+      OpenTaskSheet.getRange((r+2),1,1,OpenTaskSheet.getLastColumn()).moveTo(completeSheet.getRange(completeSheet.getLastRow()+1,completeFirstCol));
+    }
+    
+  }
+  customSort();
+}
+function setMyDataValidation(){
+  Logger.clear();
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var OpenTaskSheet = SpreadsheetApp.setActiveSheet(ss.getSheets() [1] );// getting the sheet labeled open 
+  var cell = OpenTaskSheet.getRange("D2:D"+(OpenTaskSheet.getLastRow()+20));
+  var DataSheet = SpreadsheetApp.setActiveSheet(ss.getSheets() [3] );// getting the sheet labeled DataSheet
+  var range = DataSheet.getRange("B2:B130");
+  Logger.log(OpenTaskSheet.getLastRow());
+  // rule number 1 setting Customer rule;
+ var rule = SpreadsheetApp.newDataValidation()
+     .requireValueInRange(range)
+     .setAllowInvalid(true)
+     .build();
+ cell.setDataValidation(rule);
+  // rule number 2 setting status rule;
+ cell = OpenTaskSheet.getRange("I2:I"+(OpenTaskSheet.getLastRow()+20));
+ range=DataSheet.getRange("A2:A10");
+ rule=SpreadsheetApp.newDataValidation()
+     .requireValueInRange(range)
+     .setAllowInvalid(true)
+     .build();
+ cell.setDataValidation(rule);
+ Logger.log(OpenTaskSheet.getLastRow());
+}
 /**
 * Adds a custom menu to the active spreadsheet, containing a single menu item
 * for invoking the readRows() function specified above.
@@ -87,6 +146,9 @@ var sheet = SpreadsheetApp.getActiveSpreadsheet();
 var entries = [{
 name : "Custom Sort",
 functionName : "customSort"
+},{
+name : "Move Commplete",
+functionName : "moveComplete"
 }];
 sheet.addMenu("Custom Scripts", entries);
 };
